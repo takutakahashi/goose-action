@@ -22,6 +22,8 @@ REPO=${REPO:-$(git config --get remote.origin.url | sed 's/.*github.com[\/:]\(.*
 PROMPT=${1:-""}
 INSTRUCTIONS_FILE=${INSTRUCTIONS_FILE:-""}
 GITHUB_HOST=${GITHUB_HOST:-""}
+IMAGE_VERSION=${IMAGE_VERSION:-"latest"}
+USE_LOCAL=${USE_LOCAL:-false}
 
 # API Keys
 OPENAI_API_KEY=${OPENAI_API_KEY:-""}
@@ -97,9 +99,20 @@ fi
 check_api_key
 echo ""
 
-# Build the Docker image
-echo "Building Docker image..."
-docker build -t goose-action-test .
+# Determine which image to use
+if [ "$USE_LOCAL" = "true" ]; then
+  # Build the Docker image locally
+  echo "Building local Docker image..."
+  docker build -t goose-action-test .
+  DOCKER_IMAGE="goose-action-test"
+else
+  # Use pre-built image
+  echo "Using pre-built Docker image: ghcr.io/takutakahashi/goose-action:$IMAGE_VERSION"
+  DOCKER_IMAGE="ghcr.io/takutakahashi/goose-action:$IMAGE_VERSION"
+  
+  # Pull the image
+  docker pull $DOCKER_IMAGE
+fi
 
 # Run the container
 echo "Running container..."
@@ -120,6 +133,6 @@ docker run --rm \
   -e INPUT_OPENROUTER_API_KEY="$OPENROUTER_API_KEY" \
   -e GITHUB_REPOSITORY="$REPO" \
   $([ -n "$INSTRUCTIONS_FILE" ] && echo "-v $(realpath $INSTRUCTIONS_FILE):$INSTRUCTIONS_FILE") \
-  goose-action-test
+  $DOCKER_IMAGE
 
 echo "Test completed."

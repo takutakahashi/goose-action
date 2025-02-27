@@ -82,6 +82,22 @@ jobs:
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
 ```
 
+### Using a Specific Image Version
+
+```yaml
+jobs:
+  goose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Goose with Specific Version
+        uses: takutakahashi/goose-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: "Please analyze this repository and suggest improvements."
+          image_version: "v1.0.0"  # Use a specific version
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+```
+
 ### Using with GitHub Enterprise Server
 
 ```yaml
@@ -113,6 +129,7 @@ jobs:
 | `model` | The model to use (e.g., gpt-4o, claude-3.5-sonnet) | No | `gpt-4o` |
 | `provider` | The provider to use (e.g., openai, anthropic, openrouter) | No | `openai` |
 | `repo` | The repository to run the action against | No | Current repository |
+| `image_version` | The version of the Docker image to use | No | `latest` |
 
 \* Either `prompt` or `instructions_file` must be provided
 
@@ -177,6 +194,18 @@ export INSTRUCTIONS_FILE=path/to/your/instructions.txt
 ./test-action.sh
 ```
 
+By default, the test script will use the pre-built Docker image from GHCR. You can customize this behavior:
+
+```bash
+# Use a specific image version
+export IMAGE_VERSION=v1.0.0
+./test-action.sh "Your prompt here"
+
+# Build and test locally instead of using pre-built image
+export USE_LOCAL=true
+./test-action.sh "Your prompt here"
+```
+
 For other providers:
 ```bash
 # For OpenRouter
@@ -202,6 +231,41 @@ You can find examples of how to use this action in the [examples](examples/) dir
 ## License
 
 MIT
+
+## Image Versioning
+
+The Docker image used by this action is automatically built and published to GitHub Container Registry (GHCR) when changes are made to the Dockerfile, entrypoint.sh, or related files in the main branch.
+
+Available image versions:
+
+- `latest` - Always points to the most recent build
+- `<SHA>` - Specific commit SHA (short format)
+- `v1.x.x` - Semantic version tags when releases are created
+
+You can pin to a specific version using the `image_version` input parameter to ensure reproducible builds.
+
+## Release Process
+
+This project uses GitHub Actions for continuous deployment and release management:
+
+1. **Pull Request Workflow**:
+   - When a PR is created, it's automatically labeled based on the changes
+   - A version bump suggestion is added as a comment based on semantic versioning rules
+   - Image builds are tested to ensure they complete successfully
+
+2. **Automatic Image Building**:
+   - When changes to Dockerfile, entrypoint.sh, or related files are pushed to main, a new image is automatically built and pushed to GHCR
+   - The image is tagged with the commit SHA and as `latest`
+
+3. **Release Creation**:
+   - Use the "Auto Version Bump" workflow from the Actions tab to create a new version
+   - Choose the version increment type (major, minor, patch)
+   - A new tag will be created and pushed, which triggers the release workflow
+   - The release workflow creates a GitHub Release with changelog and builds the versioned Docker image
+
+4. **Manual Release**:
+   - Alternatively, you can manually create a tag following semantic versioning (e.g., `v1.2.3`)
+   - Push the tag to trigger the release workflow: `git tag v1.2.3 && git push origin v1.2.3`
 
 ## Contributing
 

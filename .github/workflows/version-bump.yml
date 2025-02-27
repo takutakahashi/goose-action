@@ -1,0 +1,107 @@
+name: Auto Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Type of version bump to perform'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set Git User
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Get latest version
+        id: latest_version
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match "v*" 2>/dev/null || echo "v0.0.0")
+          echo "LATEST=${LATEST_TAG}" >> $GITHUB_OUTPUT
+          echo "Current latest version is ${LATEST_TAG}"
+          
+          # Extract components
+          MAJOR=$(echo ${LATEST_TAG} | sed 's/v\([0-9]*\)\..*/\1/')
+          MINOR=$(echo ${LATEST_TAG} | sed 's/v[0-9]*\.\([0-9]*\)\..*/\1/')
+          PATCH=$(echo ${LATEST_TAG} | sed 's/v[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/')
+          
+          echo "MAJOR=${MAJOR}" >> $GITHUB_OUTPUT
+          echo "MINOR=${MINOR}" >> $GITHUB_OUTPUT
+          echo "PATCH=${PATCH}" >> $GITHUB_OUTPUT
+
+      - name: Calculate new version
+        id: new_version
+        run: |
+          MAJOR=${{ steps.latest_version.outputs.MAJOR }}
+          MINOR=${{ steps.latest_version.outputs.MINOR }}
+          PATCH=${{ steps.latest_version.outputs.PATCH }}
+          
+          case "${{ github.event.inputs.version_type }}" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "New version will be: ${NEW_VERSION}"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LATEST="${{ steps.latest_version.outputs.LATEST }}"
+          CHANGES=""
+          
+          if [ "$LATEST" = "v0.0.0" ]; then
+            CHANGES=$(git log --pretty=format:"- %s (%h)" --reverse)
+          else
+            CHANGES=$(git log --pretty=format:"- %s (%h)" ${LATEST}..HEAD --reverse)
+          fi
+          
+          # Escape special characters for GitHub Actions
+          CHANGES="${CHANGES//'%'/'%25'}"
+          CHANGES="${CHANGES//$'\n'/'%0A'}"
+          CHANGES="${CHANGES//$'\r'/'%0D'}"
+          
+          echo "CHANGES=${CHANGES}" >> $GITHUB_OUTPUT
+          
+          # Print the changes to the console as well
+          echo "Changes since ${LATEST}:"
+          echo "${CHANGES}"
+
+      - name: Create and push tag
+        run: |
+          NEW_VERSION=${{ steps.new_version.outputs.VERSION }}
+          
+          # Create and push the new tag
+          git tag -a ${NEW_VERSION} -m "Release ${NEW_VERSION}"
+          git push origin ${NEW_VERSION}
+          
+          echo "Created and pushed tag: ${NEW_VERSION}"

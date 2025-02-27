@@ -1,0 +1,28 @@
+# Add 'feature' label to changes in core functionality
+feature:
+  - changed-files:
+    - any-glob-to-any-file: ['entrypoint.sh', 'action.yml']
+
+# Add 'infrastructure' label to changes related to Docker
+infrastructure:
+  - changed-files:
+    - any-glob-to-any-file: ['Dockerfile', '.github/workflows/*']
+
+# Add 'documentation' label to changes in documentation
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: ['README.md', 'examples/**/*', '**/*.md']
+    
+# Add 'bug' label for fixes
+bug:
+  - title: ['fix', 'bug', 'patch', 'hotfix']
+  
+# Add 'test' label for test improvements
+test:
+  - changed-files:
+    - any-glob-to-any-file: ['test-action.sh']
+  - title: ['test']
+  
+# Add 'dependencies' label for dependency updates
+dependencies:
+  - title: ['deps', 'dependencies', 'update']

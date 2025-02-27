@@ -1,0 +1,126 @@
+name: PR Labeler and Version
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  process-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Label PR by files changed
+        uses: actions/labeler@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+          sync-labels: true
+
+      - name: Label PR by title
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const title = context.payload.pull_request.title.toLowerCase();
+            let labels = [];
+            
+            if (title.includes('feat:') || title.startsWith('feat(') || title.includes('feature:') || title.includes('add ')) {
+              labels.push('feature');
+            }
+            
+            if (title.includes('fix:') || title.startsWith('fix(') || title.includes('bug:') || title.includes('bugfix:') || title.includes('patch')) {
+              labels.push('bug');
+            }
+            
+            if (title.includes('chore:') || title.startsWith('chore(') || title.includes('ci:') || title.includes('docs:') || title.includes('test:')) {
+              labels.push('maintenance');
+            }
+            
+            if (title.includes('breaking') || title.includes('!:') || title.includes('major')) {
+              labels.push('breaking');
+            }
+            
+            if (labels.length > 0) {
+              github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labels
+              });
+            }
+
+      - name: Get latest version
+        id: latest_version
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 --match "v*" 2>/dev/null || echo "v0.0.0")
+          echo "LATEST=${LATEST_TAG}" >> $GITHUB_OUTPUT
+          echo "Current latest version is ${LATEST_TAG}"
+          
+          # Extract components
+          MAJOR=$(echo ${LATEST_TAG} | sed 's/v\([0-9]*\)\..*/\1/')
+          MINOR=$(echo ${LATEST_TAG} | sed 's/v[0-9]*\.\([0-9]*\)\..*/\1/')
+          PATCH=$(echo ${LATEST_TAG} | sed 's/v[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/')
+          
+          echo "MAJOR=${MAJOR}" >> $GITHUB_OUTPUT
+          echo "MINOR=${MINOR}" >> $GITHUB_OUTPUT
+          echo "PATCH=${PATCH}" >> $GITHUB_OUTPUT
+
+      - name: Suggest version bump
+        id: suggest_version
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const currentVersion = {
+              major: parseInt('${{ steps.latest_version.outputs.MAJOR }}'),
+              minor: parseInt('${{ steps.latest_version.outputs.MINOR }}'),
+              patch: parseInt('${{ steps.latest_version.outputs.PATCH }}')
+            };
+            
+            let nextVersion = { ...currentVersion };
+            const labels = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const labelNames = labels.data.map(label => label.name);
+            
+            if (labelNames.includes('breaking')) {
+              nextVersion.major = currentVersion.major + 1;
+              nextVersion.minor = 0;
+              nextVersion.patch = 0;
+            } else if (labelNames.includes('feature')) {
+              nextVersion.minor = currentVersion.minor + 1;
+              nextVersion.patch = 0;
+            } else {
+              nextVersion.patch = currentVersion.patch + 1;
+            }
+            
+            const nextVersionStr = `v${nextVersion.major}.${nextVersion.minor}.${nextVersion.patch}`;
+            
+            // Add a comment with the version suggestion
+            const body = `👋 Based on the changes, I suggest the next version to be **${nextVersionStr}**.
+            
+            Current version is ${{ steps.latest_version.outputs.LATEST }}
+            
+            To release with this version after merging, run:
+            \`\`\`bash
+            git tag ${nextVersionStr}
+            git push origin ${nextVersionStr}
+            \`\`\`
+            `;
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
