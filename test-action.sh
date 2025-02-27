@@ -8,8 +8,10 @@ if [ -z "$GITHUB_TOKEN" ]; then
   exit 1
 fi
 
-if [ -z "$1" ]; then
+# Check if we have either prompt or instructions file
+if [ -z "$1" ] && [ -z "$INSTRUCTIONS_FILE" ]; then
   echo "Usage: ./test-action.sh \"Your prompt here\""
+  echo "   or: INSTRUCTIONS_FILE=path/to/instructions.txt ./test-action.sh"
   exit 1
 fi
 
@@ -17,6 +19,8 @@ fi
 MODEL=${MODEL:-gpt-4o}
 PROVIDER=${PROVIDER:-openai}
 REPO=${REPO:-$(git config --get remote.origin.url | sed 's/.*github.com[\/:]\(.*\)\.git/\1/')}
+PROMPT=${1:-""}
+INSTRUCTIONS_FILE=${INSTRUCTIONS_FILE:-""}
 
 # API Keys
 OPENAI_API_KEY=${OPENAI_API_KEY:-""}
@@ -74,7 +78,18 @@ echo "Testing Goose Action with:"
 echo "Model: $MODEL"
 echo "Provider: $PROVIDER"
 echo "Repository: $REPO"
-echo "Prompt: $1"
+if [ -n "$PROMPT" ]; then
+  echo "Prompt: $PROMPT"
+fi
+if [ -n "$INSTRUCTIONS_FILE" ]; then
+  echo "Instructions file: $INSTRUCTIONS_FILE"
+  
+  # Check if instructions file exists
+  if [ ! -f "$INSTRUCTIONS_FILE" ]; then
+    echo "Error: Instructions file '$INSTRUCTIONS_FILE' not found."
+    exit 1
+  fi
+fi
 check_api_key
 echo ""
 
@@ -86,7 +101,8 @@ docker build -t goose-action-test .
 echo "Running container..."
 docker run --rm \
   -e INPUT_GITHUB_TOKEN="$GITHUB_TOKEN" \
-  -e INPUT_PROMPT="$1" \
+  -e INPUT_PROMPT="$PROMPT" \
+  -e INPUT_INSTRUCTIONS_FILE="$INSTRUCTIONS_FILE" \
   -e INPUT_MODEL="$MODEL" \
   -e INPUT_PROVIDER="$PROVIDER" \
   -e INPUT_REPO="$REPO" \
@@ -98,6 +114,7 @@ docker run --rm \
   -e INPUT_GROQ_API_KEY="$GROQ_API_KEY" \
   -e INPUT_OPENROUTER_API_KEY="$OPENROUTER_API_KEY" \
   -e GITHUB_REPOSITORY="$REPO" \
+  $([ -n "$INSTRUCTIONS_FILE" ] && echo "-v $(realpath $INSTRUCTIONS_FILE):$INSTRUCTIONS_FILE") \
   goose-action-test
 
 echo "Test completed."

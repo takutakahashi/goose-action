@@ -46,6 +46,25 @@ jobs:
           repo: "alternative/repository"
 ```
 
+### Using Instructions File
+
+```yaml
+jobs:
+  goose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      - name: Run Goose with Instructions File
+        uses: takutakahashi/goose-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          instructions_file: ".github/goose/instructions.txt"
+          model: "gpt-4o"
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+```
+
 ### Using OpenRouter
 
 ```yaml
@@ -68,10 +87,13 @@ jobs:
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `github_token` | GitHub token for authentication | Yes | `${{ github.token }}` |
-| `prompt` | The prompt to send to Goose | Yes | - |
+| `prompt` | The prompt to send to Goose | No* | - |
+| `instructions_file` | Path to a file containing instructions for Goose | No* | - |
 | `model` | The model to use (e.g., gpt-4o, claude-3.5-sonnet) | No | `gpt-4o` |
 | `provider` | The provider to use (e.g., openai, anthropic, openrouter) | No | `openai` |
 | `repo` | The repository to run the action against | No | Current repository |
+
+\* Either `prompt` or `instructions_file` must be provided
 
 ### API Key Inputs
 
@@ -125,14 +147,30 @@ You can test the action locally using the provided test script:
 # Set required environment variables
 export GITHUB_TOKEN=your_token
 export OPENAI_API_KEY=your_openai_key
-# Or for OpenRouter
-# export PROVIDER=openrouter
-# export OPENROUTER_API_KEY=your_openrouter_key
-# export MODEL=openai/gpt-4-turbo
 
-# Run the test script
+# Run the test script with a prompt
 ./test-action.sh "Your prompt here"
+
+# Or run with an instructions file
+export INSTRUCTIONS_FILE=path/to/your/instructions.txt
+./test-action.sh
 ```
+
+For other providers:
+```bash
+# For OpenRouter
+export PROVIDER=openrouter
+export OPENROUTER_API_KEY=your_openrouter_key
+export MODEL=openai/gpt-4-turbo
+```
+
+## Examples
+
+You can find examples of how to use this action in the [examples](examples/) directory:
+
+- Basic prompt usage
+- Using instructions files ([example instruction file](examples/instructions/repository-analysis.txt))
+- Different providers configuration
 
 ## License
 

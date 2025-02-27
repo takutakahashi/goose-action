@@ -9,7 +9,12 @@ inputs:
     default: ${{ github.token }}
   prompt:
     description: 'The prompt to send to Goose'
-    required: true
+    required: false
+    default: ''
+  instructions_file:
+    description: 'Path to a file containing instructions for Goose'
+    required: false
+    default: ''
   model:
     description: 'The model to use (e.g., gpt-4o, claude-3.5-sonnet, etc.)'
     required: false

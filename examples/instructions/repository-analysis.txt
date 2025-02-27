@@ -1,0 +1,24 @@
+# Example Goose Instructions File
+
+# Create a summary of the repository structure
+Please analyze this repository and create a summary of its structure.
+Include information about:
+- Main directories and their purpose
+- Key files and what they do
+- Dependencies and requirements
+- Workflow patterns
+
+# Provide improvement suggestions
+After analyzing the repository structure, suggest some improvements for:
+- Code organization
+- Documentation
+- Testing approach
+- CI/CD processes
+
+# Create a sample PR
+Create a sample PR description that implements one of your suggested improvements.
+Include:
+- PR title
+- Description with rationale
+- List of changes to be made
+- Testing strategy

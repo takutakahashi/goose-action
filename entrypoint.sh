@@ -6,6 +6,7 @@ export GOOSE=/root/.local/bin/goose
 # Configuration
 GITHUB_TOKEN="${INPUT_GITHUB_TOKEN}"
 PROMPT="${INPUT_PROMPT}"
+INSTRUCTIONS_FILE="${INPUT_INSTRUCTIONS_FILE}"
 MODEL="${INPUT_MODEL:-gpt-4o}"
 PROVIDER="${INPUT_PROVIDER:-openai}"
 REPO="${INPUT_REPO:-${GITHUB_REPOSITORY}}"
@@ -104,8 +105,25 @@ check_api_key() {
 
 check_api_key
 
+# Validate input parameters
+if [ -z "$PROMPT" ] && [ -z "$INSTRUCTIONS_FILE" ]; then
+  echo "::error::Either 'prompt' or 'instructions_file' input parameter must be provided."
+  exit 1
+fi
+
 # Run Goose
-echo "Running Goose with prompt: $PROMPT"
-exec $GOOSE run --text "$PROMPT"
+if [ -n "$INSTRUCTIONS_FILE" ]; then
+  # Check if instructions file exists
+  if [ ! -f "$INSTRUCTIONS_FILE" ]; then
+    echo "::error::Instructions file '$INSTRUCTIONS_FILE' not found."
+    exit 1
+  fi
+  
+  echo "Running Goose with instructions file: $INSTRUCTIONS_FILE"
+  exec $GOOSE run --instructions "$INSTRUCTIONS_FILE"
+else
+  echo "Running Goose with prompt: $PROMPT"
+  exec $GOOSE run --text "$PROMPT"
+fi
 
 echo "Goose execution completed."
