@@ -14,6 +14,7 @@ ANTHROPIC_API_KEY="${INPUT_ANTHROPIC_API_KEY:-${INPUT_CLAUDE_API_KEY}}"
 GOOGLE_API_KEY="${INPUT_GOOGLE_API_KEY}"
 MISTRAL_API_KEY="${INPUT_MISTRAL_API_KEY}"
 GROQ_API_KEY="${INPUT_GROQ_API_KEY}"
+OPENROUTER_API_KEY="${INPUT_OPENROUTER_API_KEY}"
 
 # Log configuration (without tokens)
 echo "Running Goose with configuration:"
@@ -59,6 +60,10 @@ if [ -n "$GROQ_API_KEY" ]; then
   export GROQ_API_KEY="$GROQ_API_KEY"
 fi
 
+if [ -n "$OPENROUTER_API_KEY" ]; then
+  export OPENROUTER_API_KEY="$OPENROUTER_API_KEY"
+fi
+
 # Check if API key is available for selected provider
 check_api_key() {
   case "$PROVIDER" in
@@ -85,6 +90,11 @@ check_api_key() {
     "groq")
       if [ -z "$GROQ_API_KEY" ]; then
         echo "::warning::No Groq API key provided. Make sure it's available in the environment or through GitHub secrets."
+      fi
+      ;;
+    "openrouter")
+      if [ -z "$OPENROUTER_API_KEY" ]; then
+        echo "::warning::No OpenRouter API key provided. Make sure it's available in the environment or through GitHub secrets."
       fi
       ;;
   esac

@@ -1,0 +1,27 @@
+name: Goose with OpenRouter
+
+on:
+  issues:
+    types: [opened, edited]
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Prompt for Goose to process'
+        required: true
+        default: 'Summarize the repository and provide improvement suggestions'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Run Goose with OpenRouter
+        uses: takutakahashi/goose-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: ${{ github.event_name == 'workflow_dispatch' && inputs.prompt || 'Analyze this issue and suggest solutions or ask clarifying questions if needed.' }}
+          model: "anthropic/claude-3-opus-20240229" # Use Claude through OpenRouter
+          provider: "openrouter"
+          openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}

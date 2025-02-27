@@ -40,6 +40,9 @@ inputs:
   groq_api_key:
     description: 'Groq API key for authentication'
     required: false
+  openrouter_api_key:
+    description: 'OpenRouter API key for authentication'
+    required: false
 
 runs:
   using: 'docker'

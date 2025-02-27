@@ -25,6 +25,7 @@ CLAUDE_API_KEY=${CLAUDE_API_KEY:-""}
 GOOGLE_API_KEY=${GOOGLE_API_KEY:-""}
 MISTRAL_API_KEY=${MISTRAL_API_KEY:-""}
 GROQ_API_KEY=${GROQ_API_KEY:-""}
+OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-""}
 
 # Check if API key is available for selected provider
 check_api_key() {
@@ -59,6 +60,12 @@ check_api_key() {
         echo "The action may fail if the key isn't available in the container environment."
       fi
       ;;
+    "openrouter")
+      if [ -z "$OPENROUTER_API_KEY" ]; then
+        echo "Warning: No OpenRouter API key provided in OPENROUTER_API_KEY environment variable."
+        echo "The action may fail if the key isn't available in the container environment."
+      fi
+      ;;
   esac
 }
 
@@ -89,6 +96,7 @@ docker run --rm \
   -e INPUT_GOOGLE_API_KEY="$GOOGLE_API_KEY" \
   -e INPUT_MISTRAL_API_KEY="$MISTRAL_API_KEY" \
   -e INPUT_GROQ_API_KEY="$GROQ_API_KEY" \
+  -e INPUT_OPENROUTER_API_KEY="$OPENROUTER_API_KEY" \
   -e GITHUB_REPOSITORY="$REPO" \
   goose-action-test
 
