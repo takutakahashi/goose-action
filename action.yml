@@ -7,6 +7,10 @@ inputs:
     description: 'GitHub token for authentication'
     required: true
     default: ${{ github.token }}
+  github_host:
+    description: 'GitHub API host for GitHub Enterprise Server (e.g., https://github.example.com)'
+    required: false
+    default: ''
   prompt:
     description: 'The prompt to send to Goose'
     required: false

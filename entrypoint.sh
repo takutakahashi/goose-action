@@ -5,6 +5,7 @@ export GOOSE=/root/.local/bin/goose
 
 # Configuration
 GITHUB_TOKEN="${INPUT_GITHUB_TOKEN}"
+GITHUB_HOST="${INPUT_GITHUB_HOST}"
 PROMPT="${INPUT_PROMPT}"
 INSTRUCTIONS_FILE="${INPUT_INSTRUCTIONS_FILE}"
 MODEL="${INPUT_MODEL:-gpt-4o}"
@@ -24,10 +25,29 @@ echo "Running Goose with configuration:"
 echo "Model: $MODEL"
 echo "Provider: $PROVIDER"
 echo "Repository: $REPO"
+if [ -n "$GITHUB_HOST" ]; then
+  echo "GitHub Enterprise Server: $GITHUB_HOST"
+fi
 
 # Set up GitHub authentication
 echo "Setting up GitHub authentication..."
-echo "$GITHUB_TOKEN" | gh auth login --with-token
+if [ -n "$GITHUB_HOST" ]; then
+  # For GitHub Enterprise Server
+  echo "$GITHUB_TOKEN" | gh auth login --with-token --hostname "$GITHUB_HOST"
+  
+  # Configure GitHub CLI to use enterprise server endpoints
+  git config --global url."https://api:$GITHUB_TOKEN@$GITHUB_HOST/".insteadOf "https://$GITHUB_HOST/"
+  
+  # Set environment variable for GitHub API URL
+  export GH_HOST="$GITHUB_HOST"
+  export GITHUB_API_URL="https://$GITHUB_HOST/api/v3"
+  export GITHUB_SERVER_URL="https://$GITHUB_HOST"
+  export GITHUB_GRAPHQL_URL="https://$GITHUB_HOST/api/graphql"
+else
+  # For GitHub.com
+  echo "$GITHUB_TOKEN" | gh auth login --with-token
+fi
+
 if [ $? -ne 0 ]; then
   echo "::error::Failed to authenticate with GitHub"
   exit 1

@@ -1,0 +1,32 @@
+name: Goose with GitHub Enterprise Server
+
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [opened, edited]
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Prompt to send to Goose'
+        required: true
+        default: 'Review the latest changes and provide feedback.'
+
+jobs:
+  goose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Run Goose with GitHub Enterprise Server
+        uses: takutakahashi/goose-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_host: "github.example.com"  # Replace with your GitHub Enterprise Server hostname
+          prompt: ${{ github.event.inputs.prompt || 'Please analyze this repository and provide insights.' }}
+          model: "gpt-4o"
+          provider: "openai"
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}

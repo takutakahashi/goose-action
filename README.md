@@ -82,11 +82,32 @@ jobs:
           openrouter_api_key: ${{ secrets.OPENROUTER_API_KEY }}
 ```
 
+### Using with GitHub Enterprise Server
+
+```yaml
+jobs:
+  goose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      - name: Run Goose with GitHub Enterprise Server
+        uses: takutakahashi/goose-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_host: "github.example.com"  # Your GitHub Enterprise Server hostname
+          prompt: "Please analyze this repository and suggest improvements."
+          model: "gpt-4o"
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+```
+
 ## Inputs
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `github_token` | GitHub token for authentication | Yes | `${{ github.token }}` |
+| `github_host` | GitHub API host for GitHub Enterprise Server | No | GitHub.com |
 | `prompt` | The prompt to send to Goose | No* | - |
 | `instructions_file` | Path to a file containing instructions for Goose | No* | - |
 | `model` | The model to use (e.g., gpt-4o, claude-3.5-sonnet) | No | `gpt-4o` |
@@ -164,6 +185,11 @@ export OPENROUTER_API_KEY=your_openrouter_key
 export MODEL=openai/gpt-4-turbo
 ```
 
+For GitHub Enterprise Server:
+```bash
+export GITHUB_HOST=github.example.com  # Your GitHub Enterprise Server hostname
+```
+
 ## Examples
 
 You can find examples of how to use this action in the [examples](examples/) directory:
@@ -171,6 +197,7 @@ You can find examples of how to use this action in the [examples](examples/) dir
 - Basic prompt usage
 - Using instructions files ([example instruction file](examples/instructions/repository-analysis.txt))
 - Different providers configuration
+- [GitHub Enterprise Server integration](examples/github-enterprise/workflow.yml)
 
 ## License
 

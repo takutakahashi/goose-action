@@ -21,6 +21,7 @@ PROVIDER=${PROVIDER:-openai}
 REPO=${REPO:-$(git config --get remote.origin.url | sed 's/.*github.com[\/:]\(.*\)\.git/\1/')}
 PROMPT=${1:-""}
 INSTRUCTIONS_FILE=${INSTRUCTIONS_FILE:-""}
+GITHUB_HOST=${GITHUB_HOST:-""}
 
 # API Keys
 OPENAI_API_KEY=${OPENAI_API_KEY:-""}
@@ -78,6 +79,9 @@ echo "Testing Goose Action with:"
 echo "Model: $MODEL"
 echo "Provider: $PROVIDER"
 echo "Repository: $REPO"
+if [ -n "$GITHUB_HOST" ]; then
+  echo "GitHub Enterprise Server: $GITHUB_HOST"
+fi
 if [ -n "$PROMPT" ]; then
   echo "Prompt: $PROMPT"
 fi
@@ -101,6 +105,7 @@ docker build -t goose-action-test .
 echo "Running container..."
 docker run --rm \
   -e INPUT_GITHUB_TOKEN="$GITHUB_TOKEN" \
+  -e INPUT_GITHUB_HOST="$GITHUB_HOST" \
   -e INPUT_PROMPT="$PROMPT" \
   -e INPUT_INSTRUCTIONS_FILE="$INSTRUCTIONS_FILE" \
   -e INPUT_MODEL="$MODEL" \
