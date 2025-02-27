@@ -94,6 +94,6 @@ check_api_key
 
 # Run Goose
 echo "Running Goose with prompt: $PROMPT"
-goose run --repo "$REPO" --prompt "$PROMPT"
+goose run --text "$PROMPT"
 
 echo "Goose execution completed."
