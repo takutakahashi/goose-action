@@ -1,19 +1,35 @@
-FROM alpine:latest
+FROM ubuntu:latest
+
+# Set noninteractive installation
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install necessary tools
-RUN apk add --no-cache \
-    bash \
-    git \
+RUN apt-get update && apt-get install -y \
     curl \
-    jq \
-    ca-certificates
+    git \
+    make \
+    ca-certificates \
+    bzip2 \
+    libxcb1 \
+    libdbus-1-3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install GitHub CLI
-RUN apk add --no-cache github-cli
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y gh \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install goose CLI
-RUN curl -L https://github.com/block/goose/releases/latest/download/goose-linux-amd64 -o /usr/local/bin/goose && \
-    chmod +x /usr/local/bin/goose
+# Install Goose CLI
+RUN curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash
+RUN /root/.local/bin/goose --help
+
+# Create necessary directories for Goose
+RUN mkdir -p /root/.config/goose /root/.local/share/goose
+
+COPY assets/config.yaml /root/.config/goose/
 
 # Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh

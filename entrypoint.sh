@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export GOOSE=/root/.local/bin/goose
+
 # Configuration
 GITHUB_TOKEN="${INPUT_GITHUB_TOKEN}"
 PROMPT="${INPUT_PROMPT}"
@@ -104,6 +106,6 @@ check_api_key
 
 # Run Goose
 echo "Running Goose with prompt: $PROMPT"
-goose run --text "$PROMPT"
+exec $GOOSE run --text "$PROMPT"
 
 echo "Goose execution completed."

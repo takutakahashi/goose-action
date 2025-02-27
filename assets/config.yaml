@@ -1,0 +1,9 @@
+extensions:
+  developer:
+    enabled: true
+    name: developer
+    type: builtin
+  memory:
+    enabled: true
+    name: memory
+    type: builtin
