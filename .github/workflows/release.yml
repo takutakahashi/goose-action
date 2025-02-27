@@ -47,15 +47,6 @@ jobs:
                 github_token: ${{ '${{ secrets.GITHUB_TOKEN }}' }}
                 # additional configuration...
             ```
-            
-            Or pin to this specific image version:
-            ```yaml
-            - uses: takutakahashi/goose-action@main
-              with:
-                github_token: ${{ '${{ secrets.GITHUB_TOKEN }}' }}
-                image_version: "${{ steps.version.outputs.VERSION }}"
-                # additional configuration...
-            ```
           draft: false
           prerelease: false
       
