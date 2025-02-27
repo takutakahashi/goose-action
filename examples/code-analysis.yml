@@ -1,0 +1,21 @@
+name: Goose Code Analysis
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Run weekly on Monday
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Run Goose Code Analysis
+        uses: takutakahashi/goose-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: "Analyze this codebase. Look for security vulnerabilities, potential bugs, and areas for performance improvement. Provide a detailed report."
+          model: "gpt-4o"
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}

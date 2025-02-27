@@ -1,0 +1,50 @@
+name: 'Goose GitHub Action'
+description: 'Run Goose AI assistant in your GitHub Actions workflow'
+author: 'takutakahashi'
+
+inputs:
+  github_token:
+    description: 'GitHub token for authentication'
+    required: true
+    default: ${{ github.token }}
+  prompt:
+    description: 'The prompt to send to Goose'
+    required: true
+  model:
+    description: 'The model to use (e.g., gpt-4o, claude-3.5-sonnet, etc.)'
+    required: false
+    default: 'gpt-4o'
+  provider:
+    description: 'The provider to use'
+    required: false
+    default: 'openai'
+  repo:
+    description: 'The repository to run the action against'
+    required: false
+    default: ${{ github.repository }}
+  openai_api_key:
+    description: 'OpenAI API key for authentication'
+    required: false
+  anthropic_api_key:
+    description: 'Anthropic API key for authentication'
+    required: false
+  claude_api_key:
+    description: 'Claude API key for authentication (alias for anthropic_api_key)'
+    required: false
+  google_api_key:
+    description: 'Google API key for authentication'
+    required: false
+  mistral_api_key:
+    description: 'Mistral API key for authentication'
+    required: false
+  groq_api_key:
+    description: 'Groq API key for authentication'
+    required: false
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
+branding:
+  icon: 'message-square'
+  color: 'green'

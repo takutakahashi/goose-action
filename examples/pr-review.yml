@@ -1,0 +1,28 @@
+name: Goose PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Run Goose PR Review
+        uses: takutakahashi/goose-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: "Please review this PR. Analyze the changes, suggest any improvements, and look for potential bugs or issues."
+          model: ${{ vars.GOOSE_MODEL || 'gpt-4o' }}
+          provider: ${{ vars.GOOSE_PROVIDER || 'openai' }}
+          # Add the appropriate API key based on the provider
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          google_api_key: ${{ secrets.GOOGLE_API_KEY }}
+          mistral_api_key: ${{ secrets.MISTRAL_API_KEY }}
+          groq_api_key: ${{ secrets.GROQ_API_KEY }}
